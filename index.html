@@ -386,9 +386,7 @@
         email: email,
         phone: phone,
         coupon: discountOn ? "NLP300" : "None",
-        amount: discountOn ? "1200" : "1500",
-        screenshot: screenshotB64,
-        mimeType: screenshotMime
+        amount: discountOn ? "1200" : "1500"
       });
       await fetch(SCRIPT_URL + "?" + params.toString(), {
         method: "GET",
