@@ -394,16 +394,34 @@
     };
 
     try {
+      // Step 1: Upload screenshot to ImgBB
+      var imgbbKey = "6ba4624a3729750c64bde0580103caec";
+      var screenshotLink = "";
+      if (screenshotB64) {
+        var formData = new FormData();
+        formData.append("key", imgbbKey);
+        formData.append("image", screenshotB64);
+        var imgResp = await fetch("https://api.imgbb.com/1/upload", {
+          method: "POST",
+          body: formData
+        });
+        var imgJson = await imgResp.json();
+        if (imgJson.success) {
+          screenshotLink = imgJson.data.url;
+        }
+      }
+
+      // Step 2: Save everything to Google Sheet
       var params = new URLSearchParams({
         name: name,
         email: email,
         phone: phone,
         coupon: discountOn ? "NLP300" : "None",
         amount: discountOn ? "1200" : "1500",
-        screenshot: screenshotB64,
-        mimeType: "image/jpeg"
+        screenshot: screenshotLink
       });
       await fetch(SCRIPT_URL + "?" + params.toString());
+
       document.getElementById("mainContent").style.display = "none";
       document.getElementById("successCard").classList.add("show");
       window.scrollTo({ top: 0, behavior: "smooth" });
