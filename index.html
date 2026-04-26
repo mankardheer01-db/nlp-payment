@@ -381,6 +381,7 @@
     };
 
     try {
+      // Step 1: Save form data via GET and get row number
       var params = new URLSearchParams({
         name: name,
         email: email,
@@ -388,10 +389,25 @@
         coupon: discountOn ? "NLP300" : "None",
         amount: discountOn ? "1200" : "1500"
       });
-      await fetch(SCRIPT_URL + "?" + params.toString(), {
-        method: "GET",
-        mode: "no-cors"
-      });
+      var getResp = await fetch(SCRIPT_URL + "?" + params.toString());
+      var getJson = await getResp.json();
+      var row = getJson.row;
+
+      // Step 2: Upload screenshot via POST
+      if (screenshotB64 && row) {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            screenshot: screenshotB64,
+            mimeType: screenshotMime,
+            name: name,
+            row: row
+          })
+        });
+      }
+
       document.getElementById("mainContent").style.display = "none";
       document.getElementById("successCard").classList.add("show");
       window.scrollTo({ top: 0, behavior: "smooth" });
