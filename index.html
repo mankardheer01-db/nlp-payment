@@ -381,11 +381,18 @@
     };
 
     try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      var params = new URLSearchParams({
+        name: name,
+        email: email,
+        phone: phone,
+        coupon: discountOn ? "NLP300" : "None",
+        amount: discountOn ? "1200" : "1500",
+        screenshot: screenshotB64,
+        mimeType: screenshotMime
+      });
+      await fetch(SCRIPT_URL + "?" + params.toString(), {
+        method: "GET",
+        mode: "no-cors"
       });
       document.getElementById("mainContent").style.display = "none";
       document.getElementById("successCard").classList.add("show");
