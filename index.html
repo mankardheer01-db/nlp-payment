@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Payment — NLP Program</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F5F2EC;
+    --card: #FFFFFF;
+    --accent: #1A3A2A;
+    --accent2: #2E6B4F;
+    --text: #1A1A1A;
+    --muted: #6B6B6B;
+    --border: #E0DACA;
+    --success: #1A6B3A;
+    --danger: #8B1A1A;
+    --radius: 16px;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    background-image: radial-gradient(circle at 20% 20%, rgba(196,154,60,0.08) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, rgba(26,58,42,0.06) 0%, transparent 50%);
+  }
+  .container { width: 100%; max-width: 500px; }
+  .header { text-align: center; margin-bottom: 2rem; animation: fadeUp 0.6s ease both; }
+  .badge {
+    display: inline-block; background: var(--accent); color: #fff;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; padding: 5px 14px; border-radius: 100px; margin-bottom: 1rem;
+  }
+  .header h1 { font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--text); line-height: 1.2; margin-bottom: 0.5rem; }
+  .header p { font-size: 14px; color: var(--muted); }
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 2rem;
+    box-shadow: 0 4px 24px rgba(26,58,42,0.06); margin-bottom: 1.25rem;
+    animation: fadeUp 0.6s ease 0.1s both;
+  }
+  .section-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+  }
+  .field { margin-bottom: 1.25rem; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+  .field input[type=text], .field input[type=email], .field input[type=tel] {
+    width: 100%; padding: 12px 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; border: 1px solid var(--border); border-radius: 10px;
+    background: #FAFAF8; color: var(--text); outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(46,107,79,0.1); background: #fff; }
+  .coupon-row { display: flex; gap: 8px; }
+  .coupon-row input { flex: 1; text-transform: uppercase; letter-spacing: 0.05em; }
+  .btn-apply {
+    padding: 0 18px; background: var(--accent); color: #fff; border: none;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    font-weight: 500; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-apply:hover { background: var(--accent2); }
+  .coupon-msg { font-size: 13px; margin-top: 8px; min-height: 18px; font-weight: 500; }
+  .valid { color: var(--success); }
+  .invalid { color: var(--danger); }
+  .price-box {
+    background: #F8F6F0; border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.25rem; margin: 1.5rem 0;
+  }
+  .price-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--muted); padding: 5px 0; }
+  .price-row.strike span:last-child { text-decoration: line-through; color: #aaa; }
+  .price-row.discount { color: var(--success); font-weight: 500; }
+  .price-row.total { font-size: 18px; font-weight: 600; color: var(--text); border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; }
+  .qr-section { text-align: center; }
+  .qr-label { font-size: 13px; color: var(--muted); margin-bottom: 1rem; }
+  .amount-pill {
+    display: inline-flex; align-items: center;
+    background: var(--accent); color: #fff;
+    font-family: 'DM Serif Display', serif; font-size: 28px;
+    padding: 10px 28px; border-radius: 100px; margin-bottom: 1.25rem;
+  }
+  .qr-box {
+    width: 200px; height: 200px; margin: 0 auto 1.25rem;
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .upi-chip {
+    display: inline-block; background: #F0EDE4; border: 1px solid var(--border);
+    border-radius: 100px; padding: 6px 16px; font-size: 13px;
+    color: var(--text); font-weight: 500; margin-bottom: 1.25rem; word-break: break-all;
+  }
+  .steps { text-align: left; background: #F8F6F0; border-radius: 10px; padding: 1rem 1.25rem; }
+  .steps p { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+  .steps ol { padding-left: 1.2rem; color: var(--text); font-size: 13.5px; line-height: 1.8; }
+  .upload-area {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 1.5rem; text-align: center; cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: #FAFAF8; position: relative;
+  }
+  .upload-area:hover { border-color: var(--accent2); background: #f0f7f3; }
+  .upload-area.has-file { border-color: var(--success); background: #f0faf4; border-style: solid; }
+  .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-text strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 4px; }
+  .upload-text { font-size: 13px; color: var(--muted); }
+  .file-name { font-size: 13px; color: var(--success); font-weight: 500; margin-top: 6px; }
+  .btn-pay {
+    width: 100%; padding: 15px; background: var(--accent); color: #fff;
+    border: none; border-radius: 12px; font-family: 'DM Serif Display', serif;
+    font-size: 17px; cursor: pointer; transition: background 0.2s, transform 0.15s;
+    letter-spacing: 0.02em; margin-top: 0.5rem;
+  }
+  .btn-pay:hover { background: var(--accent2); }
+  .btn-pay:active { transform: scale(0.98); }
+  .btn-pay:disabled { background: #aaa; cursor: not-allowed; }
+  .success-card { display: none; text-align: center; }
+  .success-card.show { display: block; }
+  .success-icon { font-size: 52px; margin-bottom: 1rem; }
+  .success-card h2 { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--accent); margin-bottom: 0.5rem; }
+  .success-card p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+  .footer { margin-top: 2rem; text-align: center; animation: fadeUp 0.6s ease 0.3s both; }
+  .footer-made { font-size: 12px; color: var(--muted); margin-bottom: 10px; font-style: italic; }
+  .footer-links { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .footer-ig, .footer-lt {
+    display: inline-flex; align-items: center; gap: 8px;
+    text-decoration: none; color: var(--text); font-size: 13px; font-weight: 500;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 100px; padding: 7px 16px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .footer-ig:hover { background: #F0EDE4; transform: scale(1.03); }
+  .footer-lt:hover { background: #edfbf0; transform: scale(1.03); }
+  .ig-logo, .lt-logo { width: 18px; height: 18px; flex-shrink: 0; }
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <span class="badge">Registration</span>
+    <h1>NLP Program</h1>
+    <p>Pay first, then fill the form and upload your screenshot</p>
+  </div>
+
+  <div id="mainContent">
+
+    <!-- STEP 1: QR & PAYMENT -->
+    <div class="card">
+      <p class="section-label">Step 1 — Scan & Pay</p>
+      <div class="qr-section">
+        <p class="qr-label">Scan with GPay, PhonePe, Paytm or any UPI app</p>
+        <div class="amount-pill" id="amountPill">₹1,500</div>
+        <div class="qr-box" id="qrBox"></div>
+        <div class="upi-chip">📲 shuklasunil1975-1@oksbi</div>
+        <div class="steps">
+          <p>How to pay</p>
+          <ol>
+            <li>Open any UPI app and tap "Scan QR"</li>
+            <li>Scan the code above</li>
+            <li>Confirm the amount and pay</li>
+            <li>Take a screenshot of the success screen</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: COUPON -->
+    <div class="card">
+      <p class="section-label">Step 2 — Apply Coupon (Optional)</p>
+      <div class="field">
+        <label>Have a discount code? Apply it here</label>
+        <div class="coupon-row">
+          <input type="text" id="couponInput" placeholder="e.g. NLP300" />
+          <button class="btn-apply" onclick="applyCoupon()">Apply</button>
+        </div>
+        <p class="coupon-msg" id="couponMsg"></p>
+      </div>
+      <div class="price-box">
+        <div class="price-row" id="origRow"><span>Program Fee</span><span>₹1,500</span></div>
+        <div class="price-row strike" id="strikeRow" style="display:none;"><span>Original Price</span><span>₹1,500</span></div>
+        <div class="price-row discount" id="discRow" style="display:none;"><span>Coupon Discount (20%)</span><span>− ₹300</span></div>
+        <div class="price-row total"><span>Total</span><span id="totalAmt">₹1,500</span></div>
+      </div>
+    </div>
+
+    <!-- STEP 3: DETAILS + SCREENSHOT -->
+    <div class="card">
+      <p class="section-label">Step 3 — Your Details & Screenshot</p>
+      <div class="field">
+        <label>Full Name *</label>
+        <input type="text" id="fname" placeholder="Enter your full name" />
+      </div>
+      <div class="field">
+        <label>Email Address *</label>
+        <input type="email" id="femail" placeholder="you@example.com" />
+      </div>
+      <div class="field">
+        <label>WhatsApp / Phone *</label>
+        <input type="tel" id="fphone" placeholder="+91 98765 43210" />
+      </div>
+      <div class="divider"></div>
+      <div class="field">
+        <label>Upload Payment Screenshot *</label>
+        <div class="upload-area" id="uploadArea">
+          <input type="file" id="screenshotFile" accept="image/*" onchange="handleFile(this)" />
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">
+            <strong>Tap to upload screenshot</strong>
+            JPG or PNG — from GPay / PhonePe / Paytm
+          </div>
+          <p class="file-name" id="fileName"></p>
+        </div>
+      </div>
+      <button class="btn-pay" id="submitBtn" onclick="submitForm()">Complete Registration →</button>
+    </div>
+
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="card success-card" id="successCard">
+    <div class="success-icon">🎉</div>
+    <h2>Registration Complete!</h2>
+    <p style="margin-top:0.5rem;">Thank you! Your registration has been submitted successfully.<br/>We will confirm your spot shortly on WhatsApp.</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <p class="footer-made">Made by Dheer Mankar</p>
+    <div class="footer-links">
+      <!-- Instagram -->
+      <a class="footer-ig" href="https://instagram.com/dheermankar01_ron" target="_blank">
+        <svg class="ig-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ig-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#f09433"/>
+              <stop offset="25%" style="stop-color:#e6683c"/>
+              <stop offset="50%" style="stop-color:#dc2743"/>
+              <stop offset="75%" style="stop-color:#cc2366"/>
+              <stop offset="100%" style="stop-color:#bc1888"/>
+            </linearGradient>
+          </defs>
+          <rect width="24" height="24" rx="6" fill="url(#ig-grad)"/>
+          <circle cx="12" cy="12" r="4.2" stroke="white" stroke-width="1.8" fill="none"/>
+          <circle cx="17.2" cy="6.8" r="1.1" fill="white"/>
+          <rect x="3.5" y="3.5" width="17" height="17" rx="4.5" stroke="white" stroke-width="1.5" fill="none"/>
+        </svg>
+        dheermankar01_ron
+      </a>
+      <!-- Linktree -->
+      <a class="footer-lt" href="https://linktr.ee/mankardheer_ronpvt" target="_blank">
+        <svg class="lt-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <rect width="24" height="24" rx="6" fill="#43E55E"/>
+          <!-- Linktree icon: upward arrow + trunk -->
+          <polygon points="12,3 7.5,9.5 10,9.5 10,13 14,13 14,9.5 16.5,9.5" fill="white"/>
+          <!-- Left branch -->
+          <polygon points="8,12 4,17 7.5,17 7.5,21 10.5,21 10.5,17 8,17" fill="white" transform="translate(-1,0)"/>
+          <!-- Right branch -->
+          <polygon points="16,12 20,17 16.5,17 16.5,21 13.5,21 13.5,17 16,17" fill="white" transform="translate(1,0)"/>
+        </svg>
+        linktr.ee/mankardheer_ronpvt
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // =============================================
+  // 🔧 PASTE YOUR GOOGLE APPS SCRIPT URL BELOW
+  // (See setup instructions shared with you)
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmau5L0OZebPEHxtII66U4Irgli-vygDLg7PyVy_wOonZkYBrU1A6LS-R8dY4y_xZH/exec";
+  // =============================================
+
+  const BASE = 1500;
+  const DISCOUNTED = 1200;
+  const CODE = "NLP300";
+  const UPI_ID = "shuklasunil1975-1@oksbi";
+  const UPI_NAME = "NLP Program";
+
+  let discountOn = false;
+  let screenshotB64 = null;
+  let screenshotMime = "image/jpeg";
+
+  window.addEventListener("load", function() {
+    generateQR(BASE);
+  });
+
+  function generateQR(amount) {
+    var box = document.getElementById("qrBox");
+    box.innerHTML = "";
+    var upiUrl = "upi://pay?pa=" + UPI_ID + "&pn=" + encodeURIComponent(UPI_NAME) + "&am=" + amount + "&cu=INR&tn=NLP+Program+Fee";
+    new QRCode(box, { text: upiUrl, width: 176, height: 176, colorDark: "#1A3A2A", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+  }
+
+  function applyCoupon() {
+    var val = document.getElementById("couponInput").value.trim().toUpperCase();
+    var msg = document.getElementById("couponMsg");
+    if (val === CODE) {
+      discountOn = true;
+      msg.className = "coupon-msg valid";
+      msg.textContent = "✓ Coupon applied! You save ₹300.";
+      document.getElementById("discRow").style.display = "flex";
+      document.getElementById("strikeRow").style.display = "flex";
+      document.getElementById("origRow").style.display = "none";
+      document.getElementById("totalAmt").textContent = "₹1,200";
+      document.getElementById("amountPill").textContent = "₹1,200";
+      generateQR(DISCOUNTED);
+    } else if (val === "") {
+      msg.className = "coupon-msg invalid";
+      msg.textContent = "Please enter a coupon code.";
+    } else {
+      discountOn = false;
+      msg.className = "coupon-msg invalid";
+      msg.textContent = "✗ Invalid code. Please check and try again.";
+      document.getElementById("discRow").style.display = "none";
+      document.getElementById("strikeRow").style.display = "none";
+      document.getElementById("origRow").style.display = "flex";
+      document.getElementById("totalAmt").textContent = "₹1,500";
+      document.getElementById("amountPill").textContent = "₹1,500";
+      generateQR(BASE);
+    }
+  }
+
+  function handleFile(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    screenshotMime = file.type || "image/jpeg";
+    document.getElementById("fileName").textContent = "✓ " + file.name;
+    document.getElementById("uploadArea").classList.add("has-file");
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      screenshotB64 = e.target.result.split(",")[1];
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function submitForm() {
+    var name = document.getElementById("fname").value.trim();
+    var email = document.getElementById("femail").value.trim();
+    var phone = document.getElementById("fphone").value.trim();
+
+    if (!name || !email || !phone) {
+      alert("Please fill in all required fields — Name, Email and Phone."); return;
+    }
+    if (!screenshotB64) {
+      alert("Please upload your payment screenshot before submitting."); return;
+    }
+
+    var btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Submitting...';
+
+    var payload = {
+      name: name,
+      email: email,
+      phone: phone,
+      coupon: discountOn ? "NLP300" : "None",
+      amount: discountOn ? "1200" : "1500",
+      screenshot: screenshotB64,
+      mimeType: screenshotMime
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      document.getElementById("mainContent").style.display = "none";
+      document.getElementById("successCard").classList.add("show");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = "Complete Registration →";
+      alert("Something went wrong. Please check your internet and try again.");
+    }
+  }
+</script>
+</body>
+</html>
